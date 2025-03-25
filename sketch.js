@@ -306,10 +306,19 @@ function draw() {
         );
     }
     
-    // Dibujar cuentas
+    // Dibujar cuentas no seleccionadas primero
     for(let i = 0; i < n; i++) {
-        drawBead((i + 1) * spacing, height/2 + positions[i]);
+        if(!trajectoryPanel.selectedBeads.includes(i)) {
+            drawBead((i + 1) * spacing, height/2 + positions[i]);
+        }
     }
+    
+    // Dibujar cuentas seleccionadas con sus colores
+    trajectoryPanel.selectedBeads.slice(0, 3).forEach((beadIndex, colorIndex) => {
+        const color = trajectoryPanel.colors[colorIndex];
+        drawBead((beadIndex + 1) * spacing, height/2 + positions[beadIndex], color);
+    });
+    
     trajectoryPanel.draw();
 }
 
@@ -356,20 +365,29 @@ function draw() {
 // }
 
 
-function drawBead(x, y) {
-    // Degradado radial para efecto 3D
-    let gradient = drawingContext.createRadialGradient(
-        x - 5, y - 5, 5,  // Punto de origen del gradiente
-        x, y, 20          // Punto final del gradiente
-    );
-    gradient.addColorStop(0, 'hsla(210, 100%, 70%, 1)');  // Centro brillante
-    gradient.addColorStop(0.5, 'hsla(210, 100%, 40%, 1)'); // Medio tono
-    gradient.addColorStop(1, 'hsla(210, 100%, 20%, 1)');   // Borde oscuro
+function drawBead(x, y, colorHex = '#A0AEC0') { // Color base gris-azul
+    // Convertir HEX a HSL con mayor saturación
+    const rgb = parseInt(colorHex.slice(1), 16);
+    const r = (rgb >> 16) & 0xff;
+    const g = (rgb >> 8) & 0xff;
+    const b = (rgb >> 0) & 0xff;
+    const hsl = RGBToHSL(r, g, b);
+    
+    // Aumentar saturación y ajustar luminosidad
+    const enhancedHsl = {
+        h: hsl.h,
+        s: Math.min(hsl.s + 20, 100), // +20% de saturación
+        l: hsl.l
+    };
 
-    // Sombra proyectada
-    drawingContext.shadowColor = 'rgba(0, 0, 0, 0.3)';
-    drawingContext.shadowBlur = 10;
-    drawingContext.shadowOffsetY = 5;
+    // Crear gradiente mejor contrastado
+    let gradient = drawingContext.createRadialGradient(
+        x - 5, y - 5, 5, 
+        x, y, 20
+    );
+    gradient.addColorStop(0, `hsla(${enhancedHsl.h}, ${enhancedHsl.s}%, ${enhancedHsl.l + 15}%, 1)`);
+    gradient.addColorStop(0.5, `hsla(${enhancedHsl.h}, ${enhancedHsl.s}%, ${enhancedHsl.l}%, 1)`);
+    gradient.addColorStop(1, `hsla(${enhancedHsl.h}, ${enhancedHsl.s}%, ${enhancedHsl.l - 15}%, 1)`);
 
     // Círculo principal con gradiente
     push();
@@ -390,6 +408,27 @@ function drawBead(x, y) {
 
     // Resetear sombras
     drawingContext.shadowColor = 'transparent';
+}
+
+// Añade funciones de conversión RGB a HSL
+function RGBToHSL(r, g, b) {
+    r /= 255, g /= 255, b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+
+    if (max === min) {
+        h = s = 0;
+    } else {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+    return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
 }
 
 function windowResized() {

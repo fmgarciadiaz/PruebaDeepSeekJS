@@ -2,7 +2,7 @@ class TrajectoryPanel {
     constructor() {
         this.trajectory = [];
         this.selectedBeads = [];
-        this.colors = ['#FF6B6B', '#4ECDC4', '#45B7D1']; // Rojo, Turquesa, Azul
+        this.colors = ['#FF6F61', '#4DBD74', '#4169E1'];
         this.init();
     }
 
