@@ -16,15 +16,34 @@ function resetSystem() {
     positions = new Array(n).fill(0);
     velocities = new Array(n).fill(0);
     
-    // Condición inicial visible
-    const mid = Math.floor(n/2);
-    positions[mid] = height/4;
+    // Validar y ajustar el modo seleccionado
+    const maxMode = n;
+    let selectedMode = parseInt(document.getElementById('modeSelector').value);
+    if(selectedMode > maxMode) {
+        selectedMode = maxMode;
+        document.getElementById('modeSelector').value = maxMode;
+    }
+    
+    setNormalMode(selectedMode);
     isPaused = true;
     updateButtonText();
 }
 
+function setNormalMode(mode) {
+    const N = positions.length;
+    mode = Math.min(Math.max(1, mode), N); // Asegurar 1 ≤ mode ≤ N
+    
+    for(let i = 0; i < N; i++) {
+        positions[i] = amplitude * Math.sin((Math.PI * mode * (i + 1)) / (N + 1));
+    }
+    velocities.fill(0);
+}
+
 function createControls() {
     const panel = document.getElementById('controls');
+    const initialN = parseInt(document.getElementById('nSlider')?.value || 5);
+    const initialModes = Math.min(initialN, 50);
+
     panel.innerHTML = `
         <div class="control-group">
             <h3 style="margin:0 0 15px 0; color: #2d3748;">🏗️ Controles</h3>
@@ -83,6 +102,16 @@ function createControls() {
                 </label>
             </div>
 
+            <div class="control-row">
+                <label>🎛️ Modo Normal: 
+                    <select id="modeSelector">
+                        ${Array.from({length: initialModes}, (_, i) => 
+                            `<option value="${i + 1}">Modo ${i + 1}</option>`
+                        ).join('')}
+                    </select>
+                </label>
+            </div>
+
             <div class="control-row" style="gap:8px; margin-top:10px;">
                 <button id="resetBtn">🔄 Reset</button>
                 <button id="pauseBtn">⏸️ Pausa</button>
@@ -94,9 +123,26 @@ function createControls() {
     const updateLabels = () => {
         document.querySelectorAll('.value-display').forEach(span => {
             const input = document.getElementById(span.id.replace('Value', 'Slider'));
-            span.textContent = input.value;
+            if(input) span.textContent = input.value;
         });
     };
+
+    // Actualizar modos disponibles al cambiar número de cuentas
+    document.getElementById('nSlider').addEventListener('input', () => {
+        const newN = parseInt(document.getElementById('nSlider').value);
+        const modeSelector = document.getElementById('modeSelector');
+        const currentMode = parseInt(modeSelector.value);
+        
+        // Generar nuevos modos válidos
+        const newModes = Math.min(newN, 50);
+        const selectedMode = Math.min(currentMode, newN);
+        
+        modeSelector.innerHTML = Array.from({length: newModes}, (_, i) => 
+            `<option value="${i + 1}" ${i + 1 === selectedMode ? 'selected' : ''}>Modo ${i + 1}</option>`
+        ).join('');
+        
+        resetSystem();
+    });
 
     document.querySelectorAll('input').forEach(input => {
         input.addEventListener('input', updateLabels);
@@ -106,20 +152,23 @@ function createControls() {
     document.getElementById('resetBtn').addEventListener('click', resetSystem);
     document.getElementById('pauseBtn').addEventListener('click', togglePause);
     document.getElementById('randomBtn').addEventListener('click', () => {
-        positions = positions.map(() => random(-height/4, height/4));
+        positions = positions.map(() => random(-amplitude, amplitude));
     });
 
     document.getElementById('leftBound').addEventListener('change', (e) => boundary.left = e.target.value);
     document.getElementById('rightBound').addEventListener('change', (e) => boundary.right = e.target.value);
 
-    updateLabels();
+    // Configurar botón de colapso
     document.getElementById('toggleControls').addEventListener('click', () => {
         const panel = document.getElementById('controls');
         panel.classList.toggle('collapsed');
         document.getElementById('toggleControls').textContent = 
             panel.classList.contains('collapsed') ? '▶️' : '◀️';
     });
+
+    updateLabels();
 }
+
 
 function togglePause() {
     isPaused = !isPaused;
@@ -243,16 +292,15 @@ function draw() {
     
     const spacing = width / (n + 1);
     
-    // Dibujar resortes PRIMERO
+    // Dibujar resortes
     for(let i = 0; i < n - 1; i++) {
-        const x1 = (i + 1) * spacing;
-        const y1 = height/2 + positions[i];
-        const x2 = (i + 2) * spacing;
-        const y2 = height/2 + positions[i + 1];
-        drawSpring(x1, y1, x2, y2);
+        drawSpring(
+            (i + 1) * spacing, height/2 + positions[i],
+            (i + 2) * spacing, height/2 + positions[i + 1]
+        );
     }
     
-    // Dibujar cuentas DESPUÉS
+    // Dibujar cuentas
     for(let i = 0; i < n; i++) {
         drawBead((i + 1) * spacing, height/2 + positions[i]);
     }

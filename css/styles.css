@@ -79,7 +79,7 @@ button:hover {
     stroke-width: 2;
 }
 
-/* Agregar estos estilos */
+/* Botón de toggle */
 #toggleControls {
     position: fixed;
     left: 10px;
@@ -94,10 +94,19 @@ button:hover {
     transition: all 0.3s;
 }
 
+#toggleControls:hover {
+    background: #3182ce;
+}
+
+/* Estado colapsado */
 #controls.collapsed {
-    left: -350px;
+    left: -400px;
 }
 
 #controls {
+    position: fixed;
+    left: 20px;
+    top: 20px;
     transition: all 0.3s ease-in-out;
+    /* Resto de estilos del panel... */
 }
