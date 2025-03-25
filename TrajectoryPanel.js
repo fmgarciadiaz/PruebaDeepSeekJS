@@ -1,16 +1,18 @@
 class TrajectoryPanel {
     constructor() {
         this.trajectory = [];
-        this.selectedBead = 0;
+        this.selectedBeads = [];
+        this.colors = ['#FF6B6B', '#4ECDC4', '#45B7D1']; // Rojo, Turquesa, Azul
         this.init();
     }
 
     init() {
-        this.container = document.getElementById('trajectoryPanel');
-        this.container.innerHTML = `
+        this.panel = document.createElement('div');
+        this.panel.id = 'trajectoryPanel';
+        this.panel.innerHTML = `
             <div class="trajectory-controls">
-                <label>🔘 Cuenta a graficar: 
-                    <select id="beadSelector">
+                <label>🔘 Cuentas a graficar (máx 3): 
+                    <select id="beadSelector" multiple>
                         ${Array.from({length: 5}, (_, i) => 
                             `<option value="${i}">Cuenta ${i + 1}</option>`
                         ).join('')}
@@ -20,24 +22,33 @@ class TrajectoryPanel {
             </div>
             <canvas id="trajectoryCanvas"></canvas>
         `;
+        document.body.appendChild(this.panel);
         
         this.canvas = document.getElementById('trajectoryCanvas');
         this.ctx = this.canvas.getContext('2d');
-        this.resizeCanvas();
+        this.setupEvents();
+        this.resize();
+    }
+
+    setupEvents() {
+        const selector = document.getElementById('beadSelector');
         
-        document.getElementById('beadSelector').addEventListener('change', (e) => {
-            this.selectedBead = parseInt(e.target.value);
+        selector.addEventListener('change', (e) => {
+            const options = Array.from(e.target.selectedOptions);
+            this.selectedBeads = options.slice(0, 3).map(opt => parseInt(opt.value));
         });
         
         document.getElementById('clearTrajectory').addEventListener('click', () => {
             this.trajectory = [];
             this.draw();
         });
+        
+        window.addEventListener('resize', () => this.resize());
     }
 
-    resizeCanvas() {
+    resize() {
         this.canvas.width = window.innerWidth;
-        this.canvas.height = 180;
+        this.canvas.height = 150;
     }
 
     updateBeads(n) {
@@ -60,8 +71,7 @@ class TrajectoryPanel {
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
         this.ctx.strokeStyle = '#ddd';
-        this.ctx.lineWidth = 0.5;
-        for(let y = 0; y <= this.canvas.height; y += 40) {
+        for(let y = 0; y <= this.canvas.height; y += 30) {
             this.ctx.beginPath();
             this.ctx.moveTo(0, y);
             this.ctx.lineTo(this.canvas.width, y);
@@ -69,25 +79,25 @@ class TrajectoryPanel {
         }
 
         if(this.trajectory.length > 1) {
-            // Calcular escalas
-            const minY = Math.min(...this.trajectory.flat());
             const maxY = Math.max(...this.trajectory.flat());
+            const minY = Math.min(...this.trajectory.flat());
             const yRange = maxY - minY || 1;
-            
-            // Dibujar trayectoria
-            this.ctx.strokeStyle = '#2c3e50';
-            this.ctx.lineWidth = 2;
-            this.ctx.beginPath();
-            
-            this.trajectory.forEach((positions, i) => {
-                const x = (i / this.trajectory.length) * this.canvas.width;
-                const y = ((positions[this.selectedBead] - minY) / yRange) * this.canvas.height;
+
+            this.selectedBeads.slice(0, 3).forEach((beadIndex, colorIndex) => {
+                this.ctx.strokeStyle = this.colors[colorIndex];
+                this.ctx.lineWidth = 2;
+                this.ctx.beginPath();
                 
-                if(i === 0) this.ctx.moveTo(x, this.canvas.height - y);
-                else this.ctx.lineTo(x, this.canvas.height - y);
+                this.trajectory.forEach((positions, i) => {
+                    const x = (i / this.trajectory.length) * this.canvas.width;
+                    const y = ((positions[beadIndex] - minY) / yRange) * this.canvas.height;
+                    
+                    if(i === 0) this.ctx.moveTo(x, this.canvas.height - y);
+                    else this.ctx.lineTo(x, this.canvas.height - y);
+                });
+                
+                this.ctx.stroke();
             });
-            
-            this.ctx.stroke();
         }
     }
 }

@@ -2,6 +2,7 @@ let positions = [], velocities = [];
 let n = 5, k = 1, damping = 0, mass = 1, simSpeed = 1, amplitude = 50, coils = 8;
 let isPaused = true, selectedBead = -1;
 let boundary = { left: 'Fija', right: 'Fija' };
+let trajectoryPanel;
 
 function setup() {
     createCanvas(windowWidth, windowHeight);
@@ -9,6 +10,7 @@ function setup() {
     createControls();
     resetSystem();
     frameRate(60);
+    trajectoryPanel = new TrajectoryPanel();
 }
 
 function resetSystem() {
@@ -23,8 +25,11 @@ function resetSystem() {
         selectedMode = maxMode;
         document.getElementById('modeSelector').value = maxMode;
     }
-    
     setNormalMode(selectedMode);
+    // Actualizar solo si el panel existe
+    if(trajectoryPanel) {
+        trajectoryPanel.updateBeads(n); // ← Esta línea es crítica
+    }
     isPaused = true;
     updateButtonText();
 }
@@ -288,6 +293,7 @@ function draw() {
             positions[i] += velocities[i] * dt;
         }
         applyBoundaryConditions();
+        trajectoryPanel.addData(positions);
     }
     
     const spacing = width / (n + 1);
@@ -304,7 +310,51 @@ function draw() {
     for(let i = 0; i < n; i++) {
         drawBead((i + 1) * spacing, height/2 + positions[i]);
     }
+    trajectoryPanel.draw();
 }
+
+// function draw() {
+//     background(240);
+    
+//     if(!isPaused) {
+//         const dt = 0.016 * simSpeed;
+//         const accelerations = calculateForces();
+        
+//         for(let i = 0; i < n; i++) {
+//             velocities[i] = velocities[i] * (1 - damping) + accelerations[i] * dt;
+//             positions[i] += velocities[i] * dt;
+//         }
+//         applyBoundaryConditions();
+//         trajectoryPanel.addData(positions);
+//     }
+    
+//     const spacing = width / (n + 1);
+    
+//     // Dibujar resortes
+//     for(let i = 0; i < n - 1; i++) {
+//         drawSpring(
+//             (i + 1) * spacing, height/2 + positions[i],
+//             (i + 2) * spacing, height/2 + positions[i + 1]
+//         );
+//     }
+    
+//     // Dibujar cuentas
+//     trajectoryPanel.selectedBeads.slice(0, 3).forEach((beadIndex, colorIndex) => {
+//         fill(trajectoryPanel.colors[colorIndex]);
+//         ellipse((beadIndex + 1) * spacing, height/2 + positions[beadIndex], 30, 30);
+//     });
+    
+//     // Resto de las cuentas
+//     fill(210, 100, 100, 0.3);
+//     for(let i = 0; i < n; i++) {
+//         if(!trajectoryPanel.selectedBeads.includes(i)) {
+//             ellipse((i + 1) * spacing, height/2 + positions[i], 30, 30);
+//         }
+//     }
+    
+//     trajectoryPanel.draw();
+// }
+
 
 function drawBead(x, y) {
     // Degradado radial para efecto 3D
