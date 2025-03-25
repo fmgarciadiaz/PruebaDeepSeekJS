@@ -113,6 +113,12 @@ function createControls() {
     document.getElementById('rightBound').addEventListener('change', (e) => boundary.right = e.target.value);
 
     updateLabels();
+    document.getElementById('toggleControls').addEventListener('click', () => {
+        const panel = document.getElementById('controls');
+        panel.classList.toggle('collapsed');
+        document.getElementById('toggleControls').textContent = 
+            panel.classList.contains('collapsed') ? '▶️' : '◀️';
+    });
 }
 
 function togglePause() {
@@ -152,34 +158,46 @@ function calculateForces() {
 }
 
 function drawSpring(x1, y1, x2, y2) {
+    const beadRadius = 15; // Radio de las cuentas (30px de diámetro)
+    const springThickness = 3;
+    
+    // Calcular dirección y distancia real entre centros
     const dx = x2 - x1;
     const dy = y2 - y1;
-    const length = dist(x1, y1, x2, y2);
+    const distance = dist(x1, y1, x2, y2);
     const angle = atan2(dy, dx);
-    const segments = coils * 10;
+    
+    // Ajustar puntos de inicio/fin al borde de las cuentas
+    const startX = x1 + beadRadius * cos(angle);
+    const startY = y1 + beadRadius * sin(angle);
+    const endX = x2 - beadRadius * cos(angle);
+    const endY = y2 - beadRadius * sin(angle);
+    
+    // Calcular nueva longitud del resorte
+    const effectiveLength = dist(startX, startY, endX, endY);
     
     push();
-    translate(x1, y1);
+    translate(startX, startY);
     rotate(angle);
     
-    // Resorte azul con efecto 3D
-    stroke(210, 100, 70);  // Azul brillante (HSB: 210°, 100%, 70%)
-    strokeWeight(3);
+    // Dibujar resorte
+    stroke(210, 100, 70);
+    strokeWeight(springThickness);
     noFill();
     beginShape();
-    for(let i = 0; i <= segments; i++) {
-        const t = i/segments;
-        const x = t * length;
-        const y = 12 * sin(t * TWO_PI * coils);
+    for(let i = 0; i <= coils * 10; i++) {
+        const t = i / (coils * 10);
+        const x = t * effectiveLength;
+        const y = 10 * sin(t * TWO_PI * coils);
         vertex(x, y);
     }
     endShape();
     
-    // Extremos metálicos
-    fill(210, 100, 90);
+    // Dibujar conectores físicos
+    fill(210, 100, 70);
     noStroke();
-    ellipse(0, 0, 8, 8);
-    ellipse(length, 0, 8, 8);
+    ellipse(0, 0, springThickness * 2.5); // Conector izquierdo
+    ellipse(effectiveLength, 0, springThickness * 2.5); // Conector derecho
     pop();
 }
 
@@ -209,7 +227,7 @@ function mouseReleased() {
 }
 
 function draw() {
-    background(240);  // Fondo gris claro
+    background(240);
     
     if(!isPaused) {
         const dt = 0.016 * parseFloat(document.getElementById('speedSlider').value);
@@ -225,20 +243,55 @@ function draw() {
     
     const spacing = width / (n + 1);
     
-    // Dibujar resortes primero
+    // Dibujar resortes PRIMERO
     for(let i = 0; i < n - 1; i++) {
-        drawSpring(
-            (i + 1) * spacing, height/2 + positions[i],
-            (i + 2) * spacing, height/2 + positions[i + 1]
-        );
+        const x1 = (i + 1) * spacing;
+        const y1 = height/2 + positions[i];
+        const x2 = (i + 2) * spacing;
+        const y2 = height/2 + positions[i + 1];
+        drawSpring(x1, y1, x2, y2);
     }
     
-    // Dibujar cuentas después
-    fill(210, 100, 90);  // Azul vibrante
-    noStroke();
+    // Dibujar cuentas DESPUÉS
     for(let i = 0; i < n; i++) {
-        ellipse((i + 1) * spacing, height/2 + positions[i], 30, 30);
+        drawBead((i + 1) * spacing, height/2 + positions[i]);
     }
+}
+
+function drawBead(x, y) {
+    // Degradado radial para efecto 3D
+    let gradient = drawingContext.createRadialGradient(
+        x - 5, y - 5, 5,  // Punto de origen del gradiente
+        x, y, 20          // Punto final del gradiente
+    );
+    gradient.addColorStop(0, 'hsla(210, 100%, 70%, 1)');  // Centro brillante
+    gradient.addColorStop(0.5, 'hsla(210, 100%, 40%, 1)'); // Medio tono
+    gradient.addColorStop(1, 'hsla(210, 100%, 20%, 1)');   // Borde oscuro
+
+    // Sombra proyectada
+    drawingContext.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    drawingContext.shadowBlur = 10;
+    drawingContext.shadowOffsetY = 5;
+
+    // Círculo principal con gradiente
+    push();
+    drawingContext.fillStyle = gradient;
+    noStroke();
+    ellipse(x, y, 30, 30);
+
+    // Reflejo de luz
+    fill(255, 180);
+    ellipse(x - 6, y - 6, 12, 12);
+    
+    // Borde sutil para profundidad
+    stroke(210, 100, 30);
+    noFill();
+    strokeWeight(1.5);
+    ellipse(x, y, 30, 30);
+    pop();
+
+    // Resetear sombras
+    drawingContext.shadowColor = 'transparent';
 }
 
 function windowResized() {
