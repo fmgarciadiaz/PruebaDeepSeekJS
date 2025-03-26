@@ -18,17 +18,19 @@ function resetSystem() {
     positions = new Array(n).fill(0);
     velocities = new Array(n).fill(0);
     
-    // Validar y ajustar el modo seleccionado
     const maxMode = n;
     let selectedMode = parseInt(document.getElementById('modeSelector').value);
-    if(selectedMode > maxMode) {
+    
+    // Validación mejorada para Modo 0
+    if(selectedMode > maxMode && selectedMode !== 0) {
         selectedMode = maxMode;
         document.getElementById('modeSelector').value = maxMode;
     }
+    
     setNormalMode(selectedMode);
-    // Actualizar solo si el panel existe
+    
     if(trajectoryPanel) {
-        trajectoryPanel.updateBeads(n); // ← Esta línea es crítica
+        trajectoryPanel.updateBeads(n);
     }
     isPaused = true;
     updateButtonText();
@@ -36,10 +38,16 @@ function resetSystem() {
 
 function setNormalMode(mode) {
     const N = positions.length;
-    mode = Math.min(Math.max(1, mode), N); // Asegurar 1 ≤ mode ≤ N
     
-    for(let i = 0; i < N; i++) {
-        positions[i] = amplitude * Math.sin((Math.PI * mode * (i + 1)) / (N + 1));
+    if (mode === 0) {
+        // Modo cero: todas las posiciones en 0
+        positions.fill(0);
+    } else {
+        // Modos normales existentes
+        mode = Math.min(Math.max(1, mode), N);
+        for(let i = 0; i < N; i++) {
+            positions[i] = amplitude * Math.sin((Math.PI * mode * (i + 1)) / (N + 1));
+        }
     }
     velocities.fill(0);
 }
@@ -110,6 +118,7 @@ function createControls() {
             <div class="control-row">
                 <label>🎛️ Modo Normal: 
                     <select id="modeSelector">
+                        <option value="0">Modo 0 (Cero)</option>
                         ${Array.from({length: initialModes}, (_, i) => 
                             `<option value="${i + 1}">Modo ${i + 1}</option>`
                         ).join('')}
@@ -132,19 +141,20 @@ function createControls() {
         });
     };
 
-    // Actualizar modos disponibles al cambiar número de cuentas
     document.getElementById('nSlider').addEventListener('input', () => {
         const newN = parseInt(document.getElementById('nSlider').value);
         const modeSelector = document.getElementById('modeSelector');
         const currentMode = parseInt(modeSelector.value);
         
-        // Generar nuevos modos válidos
         const newModes = Math.min(newN, 50);
-        const selectedMode = Math.min(currentMode, newN);
+        const selectedMode = currentMode === 0 ? 0 : Math.min(currentMode, newN);
         
-        modeSelector.innerHTML = Array.from({length: newModes}, (_, i) => 
-            `<option value="${i + 1}" ${i + 1 === selectedMode ? 'selected' : ''}>Modo ${i + 1}</option>`
-        ).join('');
+        modeSelector.innerHTML = `
+            <option value="0" ${0 === selectedMode ? 'selected' : ''}>Modo 0 (Cero)</option>
+            ${Array.from({length: newModes}, (_, i) => 
+                `<option value="${i + 1}" ${i + 1 === selectedMode ? 'selected' : ''}>Modo ${i + 1}</option>`
+            ).join('')}
+        `;
         
         resetSystem();
     });
@@ -163,7 +173,6 @@ function createControls() {
     document.getElementById('leftBound').addEventListener('change', (e) => boundary.left = e.target.value);
     document.getElementById('rightBound').addEventListener('change', (e) => boundary.right = e.target.value);
 
-    // Configurar botón de colapso
     document.getElementById('toggleControls').addEventListener('click', () => {
         const panel = document.getElementById('controls');
         panel.classList.toggle('collapsed');
@@ -173,7 +182,6 @@ function createControls() {
 
     updateLabels();
 }
-
 
 function togglePause() {
     isPaused = !isPaused;
