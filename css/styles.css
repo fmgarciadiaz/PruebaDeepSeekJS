@@ -126,7 +126,8 @@ button:hover {
 }
 
 #trajectoryCanvas {
-    width: 100%;
+    margin-left: 45px; /* Espacio para la escala */
+    width: calc(100% - 45px);
     height: 150px;
     background: #f8f9fa;
     border: 1px solid #eee;
