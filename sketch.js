@@ -3,6 +3,8 @@ let n = 5, k = 1, damping = 0, mass = 1, simSpeed = 1, amplitude = 50, coils = 8
 let isPaused = true, selectedBead = -1;
 let boundary = { left: 'Fija', right: 'Fija' };
 let trajectoryPanel;
+let hoveredBead = -1;
+let showTooltip = false;
 
 function setup() {
     createCanvas(windowWidth, windowHeight);
@@ -180,6 +182,10 @@ function createControls() {
             panel.classList.contains('collapsed') ? '▶️' : '◀️';
     });
 
+    document.getElementById('coilSlider').addEventListener('input', (e) => {
+        coils = parseInt(e.target.value); // Actualiza la variable global
+    });
+    
     updateLabels();
 }
 
@@ -284,6 +290,63 @@ function mouseDragged() {
     }
 }
 
+function mouseMoved() {
+    hoveredBead = -1;
+    const spacing = width / (n + 1);
+    for(let i = 0; i < n; i++) {
+      const x = (i + 1) * spacing;
+      const y = height/2 + positions[i];
+      if(dist(mouseX, mouseY, x, y) < 15) {
+        hoveredBead = i;
+        break;
+      }
+    }
+}
+
+function drawTooltip() {
+    if(hoveredBead >= 0) {
+      const currentPos = positions[hoveredBead];
+      const spacing = width / (n + 1);
+      const x = (hoveredBead + 1) * spacing + 15;
+      const y = height/2 + currentPos - 15;
+  
+      push();
+      fill(255, 230);
+      noStroke();
+      rectMode(CORNER);
+      rect(x, y - 20, 120, 25, 5);
+      
+      fill(50);
+      textSize(12);
+      textAlign(LEFT, CENTER);
+      text(`Cuenta ${hoveredBead + 1} | Pos: ${currentPos.toFixed(1)}`, x + 5, y - 8);
+      pop();
+    }
+}
+
+
+
+function drawTooltip() {
+  if(hoveredBead >= 0) {
+    const currentPos = positions[hoveredBead];
+    const spacing = width / (n + 1);
+    const x = (hoveredBead + 1) * spacing + 15;
+    const y = height/2 + currentPos - 15;
+
+    push();
+    fill(255, 230);
+    noStroke();
+    rectMode(CORNER);
+    rect(x, y - 20, 120, 25, 5);
+    
+    fill(50);
+    textSize(12);
+    textAlign(LEFT, CENTER);
+    text(`Cuenta ${hoveredBead + 1} | Pos: ${currentPos.toFixed(1)}`, x + 5, y - 8);
+    pop();
+  }
+}
+
 function mouseReleased() {
     selectedBead = -1;
 }
@@ -328,6 +391,7 @@ function draw() {
     });
     
     trajectoryPanel.draw();
+    drawTooltip();
 }
 
 // function draw() {

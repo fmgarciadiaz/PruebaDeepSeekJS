@@ -165,3 +165,7 @@ button:hover {
 #beadSelector option:checked {
     background: #e9ecef;
 }
+
+canvas {
+    cursor: default;
+  }
