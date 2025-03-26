@@ -172,3 +172,19 @@ button:hover {
 canvas {
     cursor: default;
   }
+
+  .main-button {
+    flex: 1;
+    padding: 8px 12px;
+    background: #4299e1;
+    color: white !important;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.main-button:hover {
+    background: #2d3748;
+    transform: scale(1.05);
+}

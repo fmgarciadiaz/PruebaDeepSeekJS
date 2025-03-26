@@ -60,9 +60,18 @@ function createControls() {
     const initialModes = Math.min(initialN, 50);
 
     panel.innerHTML = `
+    
         <div class="control-group">
+    <div class="control-group">
             <h3 style="margin:0 0 12px 0; color: #2d3748; font-size: 1.1em;">🏗️ Controles</h3>
             
+            <!-- Botones primero -->
+            <div class="control-row" style="gap:8px; margin-bottom: 15px;">
+                <button id="resetBtn" class="main-button">🔄 Reset</button>
+                <button id="pauseBtn" class="main-button">⏸️ Pausa</button>
+                <button id="randomBtn" class="main-button">🎲 Aleatorio</button>
+            </div>
+
             <div class="control-row">
                 <label>🔢 Cuentas: 
                     <input type="range" id="nSlider" min="1" max="50" value="5">
@@ -126,12 +135,6 @@ function createControls() {
                         ).join('')}
                     </select>
                 </label>
-            </div>
-
-            <div class="control-row" style="gap:8px; margin-top:10px;">
-                <button id="resetBtn">🔄 Reset</button>
-                <button id="pauseBtn">⏸️ Pausa</button>
-                <button id="randomBtn">🎲 Aleatorio</button>
             </div>
         </div>
     `;
