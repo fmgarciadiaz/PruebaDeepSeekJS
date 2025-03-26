@@ -10,17 +10,20 @@ class TrajectoryPanel {
         this.panel = document.createElement('div');
         this.panel.id = 'trajectoryPanel';
         this.panel.innerHTML = `
+        <div class="trajectory-container">
             <div class="trajectory-controls">
-                <label>🔘 Cuentas a graficar (máx 3): 
-                    <select id="beadSelector" multiple>
+                <div class="bead-selection">
+                    <label>🔘 Cuentas:</label>
+                    <select id="beadSelector" multiple size="4">
                         ${Array.from({length: 5}, (_, i) => 
-                            `<option value="${i}">Cuenta ${i + 1}</option>`
+                            `<option value="${i}">${i + 1}</option>`
                         ).join('')}
                     </select>
-                </label>
-                <button id="clearTrajectory">🧹 Limpiar</button>
+                    <button id="clearTrajectory">🧹</button>
+                </div>
             </div>
             <canvas id="trajectoryCanvas"></canvas>
+        </div>
         `;
         document.body.appendChild(this.panel);
         
@@ -47,8 +50,9 @@ class TrajectoryPanel {
     }
 
     resize() {
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = 150;
+            // En el método resize():
+            this.canvas.width = window.innerWidth * 0.8; // 80% del ancho
+            this.canvas.height = 200; // Altura aumentada
     }
 
     updateBeads(n) {

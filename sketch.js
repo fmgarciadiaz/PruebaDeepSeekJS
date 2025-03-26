@@ -16,42 +16,54 @@ function setup() {
 }
 
 function resetSystem() {
+    // Actualizar todas las variables de control primero
     n = parseInt(document.getElementById('nSlider').value);
+    k = parseFloat(document.getElementById('kSlider').value);
+    mass = parseFloat(document.getElementById('massSlider').value);
+    damping = parseFloat(document.getElementById('dampSlider').value);
+    amplitude = 50; // Resetear amplitud base
+    
+    // Reinicializar arrays con nuevo tamaño
     positions = new Array(n).fill(0);
     velocities = new Array(n).fill(0);
     
-    const maxMode = n;
-    let selectedMode = parseInt(document.getElementById('modeSelector').value);
+    // Actualizar selector de modos
+    const modeSelector = document.getElementById('modeSelector');
+    const maxValidMode = n > 0 ? n : 1;
+    let selectedMode = Math.min(parseInt(modeSelector.value), maxValidMode);
+    selectedMode = selectedMode < 0 ? 0 : selectedMode;
     
-    // Validación mejorada para Modo 0
-    if(selectedMode > maxMode && selectedMode !== 0) {
-        selectedMode = maxMode;
-        document.getElementById('modeSelector').value = maxMode;
-    }
+    // Regenerar opciones de modos
+    modeSelector.innerHTML = `
+        <option value="0" ${0 === selectedMode ? 'selected' : ''}>Modo 0 (Cero)</option>
+        ${Array.from({length: maxValidMode}, (_, i) => 
+            `<option value="${i + 1}" ${i + 1 === selectedMode ? 'selected' : ''}>Modo ${i + 1}</option>`
+        ).join('')}
+    `;
     
-    setNormalMode(selectedMode);
+    setNormalMode(selectedMode); // Aplicar modo
     
-    if(trajectoryPanel) {
-        trajectoryPanel.updateBeads(n);
-    }
+    // Forzar actualización física inmediata
+    applyBoundaryConditions();
+    if(trajectoryPanel) trajectoryPanel.updateBeads(n);
     isPaused = true;
     updateButtonText();
 }
 
 function setNormalMode(mode) {
     const N = positions.length;
+    mode = Math.max(0, Math.min(mode, N)); // Asegurar modo válido
     
     if (mode === 0) {
-        // Modo cero: todas las posiciones en 0
         positions.fill(0);
     } else {
-        // Modos normales existentes
-        mode = Math.min(Math.max(1, mode), N);
+        const effectiveAmplitude = amplitude / Math.sin(Math.PI * mode / (N + 1));
         for(let i = 0; i < N; i++) {
-            positions[i] = amplitude * Math.sin((Math.PI * mode * (i + 1)) / (N + 1));
+            positions[i] = effectiveAmplitude * Math.sin((Math.PI * mode * (i + 1)) / (N + 1));
         }
     }
     velocities.fill(0);
+    applyBoundaryConditions(); // Aplicar condiciones inmediatamente
 }
 
 function createControls() {
