@@ -172,3 +172,21 @@ button:hover {
     background: #2d3748;
     transform: scale(1.05);
 }
+
+#trajectoryPanel canvas {
+    background: transparent !important;
+}
+
+.bead-selection {
+    pointer-events: auto; /* Permite interactuar con los controles */
+}
+
+#beadSelector {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid #ddd;
+}
+
+#clearTrajectory {
+    pointer-events: auto;
+    margin-top: 10px;
+}

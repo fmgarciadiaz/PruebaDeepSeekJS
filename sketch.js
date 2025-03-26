@@ -1,6 +1,6 @@
-// Version modelado con Euler Simple -- Produce errores acumulativos/
+// Version modelado con Euler Simple
 
-let positions = [], velocities = [], previousPositions = [];
+let positions = [], velocities = [];
 let n = 5, k = 1, damping = 0, mass = 1, simSpeed = 1, amplitude = 50, coils = 8;
 let isPaused = true, selectedBead = -1;
 let boundary = { left: 'Fija', right: 'Fija' };
@@ -27,7 +27,6 @@ function resetSystem() {
     
     // Reinicializar arrays con nuevo tamaño
     positions = new Array(n).fill(0);
-    previousPositions = new Array(n).fill(0);
     velocities = new Array(n).fill(0);
     
     // Actualizar selector de modos

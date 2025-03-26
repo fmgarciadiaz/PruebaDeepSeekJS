@@ -50,9 +50,9 @@ class TrajectoryPanel {
     }
 
     resize() {
-            // En el método resize():
-            this.canvas.width = window.innerWidth * 0.8; // 80% del ancho
-            this.canvas.height = 200; // Altura aumentada
+        // En el método resize():
+        this.canvas.width = window.innerWidth * 0.8; // 80% del ancho
+        this.canvas.height = 200; // Altura aumentada
     }
 
     updateBeads(n) {
