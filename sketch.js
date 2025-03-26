@@ -61,7 +61,7 @@ function createControls() {
 
     panel.innerHTML = `
         <div class="control-group">
-            <h3 style="margin:0 0 15px 0; color: #2d3748;">🏗️ Controles</h3>
+            <h3 style="margin:0 0 12px 0; color: #2d3748; font-size: 1.1em;">🏗️ Controles</h3>
             
             <div class="control-row">
                 <label>🔢 Cuentas: 
@@ -185,7 +185,7 @@ function createControls() {
     document.getElementById('coilSlider').addEventListener('input', (e) => {
         coils = parseInt(e.target.value); // Actualiza la variable global
     });
-    
+
     updateLabels();
 }
 
